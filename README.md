@@ -62,10 +62,13 @@ Production: **https://jolomonson.mispartechnologies.com**, project `lugxigvcfkbk
 2. Auth → URL Configuration:
    - Site URL: `https://jolomonson.mispartechnologies.com`
    - Redirect URLs: `https://jolomonson.mispartechnologies.com/**` and `http://localhost:3000/**`
-3. Auth → Emails → SMTP Settings (Resend):
-   - host `smtp.resend.com`, port `465`, username `resend`, password = your Resend API key
-   - sender `no-reply@mispartechnologies.com`, name `24 @ 24`
+3. Auth → Emails → SMTP Settings (Zoho Mail):
+   - host `smtppro.zoho.com` (use `smtppro.zoho.eu` if the Zoho account is in the EU data centre), port `465`
+   - username: the full Zoho mailbox address, e.g. `noreply@mispartechnologies.com`
+   - password: a Zoho **app-specific password** (Zoho Accounts → Security → App Passwords) if 2FA is on, otherwise the mailbox password
+   - sender email: the same mailbox or one of its aliases (Zoho rejects other From addresses); sender name `24 @ 24`
    - Then raise Auth → Rate Limits → emails per hour (the default is very low).
+   - If sign-in says "The email server rejected the message", look under Supabase → Logs → Auth for the SMTP error.
 4. Auth → Emails → Templates. Paste `supabase/templates/magic_link.html` into **Magic Link** and `confirmation.html` into **Confirm signup**. The link is built from `{{ .RedirectTo }}`, so it comes back to whichever origin asked for it (localhost or production). Allow that origin under Redirect URLs.
 5. Vercel → Environment Variables: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `ALLOWED_EMAILS`, and `NEXT_PUBLIC_SITE_URL=https://jolomonson.mispartechnologies.com`.
 6. Vercel → Domains: add `jolomonson.mispartechnologies.com`, then create the DNS record Vercel shows (a `CNAME` for `jolomonson`) where mispartechnologies.com's DNS is managed.

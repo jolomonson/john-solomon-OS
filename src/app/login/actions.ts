@@ -48,7 +48,7 @@ export async function sendMagicLink(_prev: LoginState, formData: FormData): Prom
   });
   if (error) {
     console.error("signInWithOtp failed", error);
-    return { step: "email", email, error: error.status === 429 ? "Too many attempts. Wait a minute." : "Could not send the email. Try again." };
+    return { step: "email", email, error: otpErrorMessage(error) };
   }
   return sentState;
 }
@@ -77,4 +77,18 @@ export async function signOut() {
   const db = await createClient();
   await db.auth.signOut();
   redirect("/login");
+}
+
+/** Turn a Supabase Auth error into something John can act on. */
+function otpErrorMessage(error: { name?: string; status?: number; message?: string }): string {
+  // No HTTP response at all: the Supabase project is unreachable (paused, deleted or wrong URL).
+  if (error.name === "AuthRetryableFetchError" || !error.status) {
+    return "Can't reach the sign-in service. Check that the Supabase project isn't paused.";
+  }
+  if (error.status === 429) return "Too many attempts. Wait a minute.";
+  // Supabase reports SMTP failures as a 500 "Error sending magic link email".
+  if (error.status >= 500 && /sending|smtp|email/i.test(error.message ?? "")) {
+    return "The email server rejected the message. Check the SMTP settings in Supabase.";
+  }
+  return "Could not send the email. Try again.";
 }
